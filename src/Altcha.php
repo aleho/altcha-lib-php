@@ -4,36 +4,34 @@ declare(strict_types=1);
 
 namespace AltchaOrg\Altcha;
 
-use InvalidArgumentException;
+use AltchaOrg\Altcha\Hasher\Algorithm;
 
 class Altcha
 {
-    private static function hash(string $algorithm, string $data): string
+    private static function hash(Algorithm $algorithm, string $data): string
     {
         return match ($algorithm) {
             Algorithm::SHA1   => sha1($data, true),
             Algorithm::SHA256 => hash('sha256', $data, true),
             Algorithm::SHA512 => hash('sha512', $data, true),
-            default           => throw new InvalidArgumentException("Unsupported algorithm: $algorithm"),
         };
     }
 
-    public static function hashHex(string $algorithm, string $data): string
+    public static function hashHex(Algorithm $algorithm, string $data): string
     {
         return bin2hex(self::hash($algorithm, $data));
     }
 
-    private static function hmacHash(string $algorithm, string $data, string $key): string
+    private static function hmacHash(Algorithm $algorithm, string $data, string $key): string
     {
         return match ($algorithm) {
             Algorithm::SHA1   => hash_hmac('sha1', $data, $key, true),
             Algorithm::SHA256 => hash_hmac('sha256', $data, $key, true),
             Algorithm::SHA512 => hash_hmac('sha512', $data, $key, true),
-            default           => throw new InvalidArgumentException("Unsupported algorithm: $algorithm"),
         };
     }
 
-    private static function hmacHex(string $algorithm, string $data, string $key): string
+    private static function hmacHex(Algorithm $algorithm, string $data, string $key): string
     {
         return bin2hex(self::hmacHash($algorithm, $data, $key));
     }
@@ -84,7 +82,13 @@ class Altcha
             return null;
         }
 
-        return new Payload($data['algorithm'], $data['challenge'], $data['number'], $data['salt'], $data['signature']);
+        $algorithm = Algorithm::tryFrom($data['algorithm']);
+
+        if (!$algorithm) {
+            return null;
+        }
+
+        return new Payload($algorithm, $data['challenge'], $data['number'], $data['salt'], $data['signature']);
     }
 
     /**
@@ -106,7 +110,13 @@ class Altcha
             return null;
         }
 
-        return new ServerSignaturePayload($data['algorithm'], $data['verificationData'], $data['signature'], $data['verified']);
+        $algorithm = Algorithm::tryFrom($data['algorithm']);
+
+        if (!$algorithm) {
+            return null;
+        }
+
+        return new ServerSignaturePayload($algorithm, $data['verificationData'], $data['signature'], $data['verified']);
     }
 
     /**
@@ -121,7 +131,7 @@ class Altcha
         $challenge = self::hashHex($options->algorithm, $options->salt . $options->number);
         $signature = self::hmacHex($options->algorithm, $challenge, $options->hmacKey);
 
-        return new Challenge($options->algorithm, $challenge, $options->maxNumber, $options->salt, $signature);
+        return new Challenge($options->algorithm->value, $challenge, $options->maxNumber, $options->salt, $signature);
     }
 
     /**
@@ -181,9 +191,9 @@ class Altcha
      * @param array<array-key, mixed> $formData   The form data to hash.
      * @param array<array-key, mixed> $fields     The fields to include in the hash.
      * @param string                  $fieldsHash The expected hash value.
-     * @param string                  $algorithm  Hashing algorithm (`SHA-1`, `SHA-256`, `SHA-512`).
+     * @param Algorithm               $algorithm  Hashing algorithm (`SHA-1`, `SHA-256`, `SHA-512`).
      */
-    public static function verifyFieldsHash(array $formData, array $fields, string $fieldsHash, string $algorithm): bool
+    public static function verifyFieldsHash(array $formData, array $fields, string $fieldsHash, Algorithm $algorithm): bool
     {
         $lines = [];
         foreach ($fields as $field) {
@@ -251,13 +261,13 @@ class Altcha
     /**
      * Finds a solution to the given challenge.
      *
-     * @param string $challenge The challenge hash.
-     * @param string $salt      The challenge salt.
-     * @param string $algorithm Hashing algorithm (`SHA-1`, `SHA-256`, `SHA-512`).
-     * @param int    $max       Maximum number to iterate to.
-     * @param int    $start     Starting number.
+     * @param string    $challenge The challenge hash.
+     * @param string    $salt      The challenge salt.
+     * @param Algorithm $algorithm Hashing algorithm.
+     * @param int       $max       Maximum number to iterate to.
+     * @param int       $start     Starting number.
      */
-    public static function solveChallenge(string $challenge, string $salt, string $algorithm, int $max, int $start = 0): ?Solution
+    public static function solveChallenge(string $challenge, string $salt, Algorithm $algorithm, int $max, int $start = 0): ?Solution
     {
         $startTime = microtime(true);
 

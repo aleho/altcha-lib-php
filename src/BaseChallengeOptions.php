@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AltchaOrg\Altcha;
 
+use AltchaOrg\Altcha\Hasher\Algorithm;
+
 /**
  * @phpstan-type ChallengeParams array<string, null|scalar>
  */
@@ -11,7 +13,7 @@ class BaseChallengeOptions
 {
     public const DEFAULT_MAX_NUMBER = 1000000;
 
-    public string $algorithm;
+    public Algorithm $algorithm;
     public int $maxNumber;
     public string $hmacKey;
     public string $salt;
@@ -28,7 +30,7 @@ class BaseChallengeOptions
      * @param ChallengeParams $params
      */
     public function __construct(
-        string $algorithm,
+        Algorithm $algorithm,
         string $hmacKey,
         int $maxNumber,
         ?\DateTimeInterface $expires,

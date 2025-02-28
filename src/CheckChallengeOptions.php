@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace AltchaOrg\Altcha;
 
+use AltchaOrg\Altcha\Hasher\Algorithm;
+
 class CheckChallengeOptions extends BaseChallengeOptions
 {
     public function __construct(
         string $hmacKey,
-        string $algorithm,
+        Algorithm $algorithm,
         string $salt,
         int $number
     ) {

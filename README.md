@@ -97,7 +97,7 @@ Verifies an ALTCHA solution.
 
 **Returns:** `bool`
 
-### `Altcha::verifyFieldsHash(array $formData, array $fields, string $fieldsHash, string $algorithm): bool`
+### `Altcha::verifyFieldsHash(array $formData, array $fields, string $fieldsHash, Algorithm $algorithm): bool`
 
 Verifies the hash of form fields.
 
@@ -121,7 +121,7 @@ Verifies the server signature.
 
 **Returns:** `ServerSignatureVerification`
 
-### `Altcha::solveChallenge(string $challenge, string $salt, string $algorithm, int $max, int $start = 0): array`
+### `Altcha::solveChallenge(string $challenge, string $salt, Algorithm $algorithm, int $max, int $start = 0): array`
 
 Finds a solution to the given challenge.
 
