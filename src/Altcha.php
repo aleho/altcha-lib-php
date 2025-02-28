@@ -72,7 +72,7 @@ class Altcha
 
         try {
             $data = json_decode($decoded, true, 2, JSON_THROW_ON_ERROR);
-        } catch (\JsonException|\ValueError $e) {
+        } catch (\JsonException|\ValueError) {
             return null;
         }
 

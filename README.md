@@ -6,7 +6,7 @@ The ALTCHA PHP Library is a lightweight, zero-dependency library designed for cr
 
 This library is compatible with:
 
-- PHP 7.4+
+- PHP 8.1+
 - All major platforms (Linux, Windows, macOS)
 
 ## Example
@@ -37,9 +37,9 @@ $hmacKey = 'secret hmac key';
 
 // Create a new challenge
 $options = new ChallengeOptions(
-    $hmacKey,
-    ChallengeOptions::DEFAULT_ALGORITHM,
-    50000, // the maximum random number
+    hmacKey: $hmacKey,
+    maxNumber: 50000, // the maximum random number
+    expires: (new \DateTimeImmutable())->add(new \DateInterval('PT10S')),
 ]);
 
 $challenge = Altcha::createChallenge($options);
@@ -76,7 +76,7 @@ Creates a new challenge for ALTCHA.
 
 ```php
 $options = new ChallengeOptions(
-    $hmacKey,
+    hmacKey: $hmacKey,
     ChallengeOptions::DEFAULT_ALGORITHM,
     ChallengeOptions::DEFAULT_MAX_NUMBER,
     (new \DateTimeImmutable())->add(new \DateInterval('PT10S')),
