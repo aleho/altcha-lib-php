@@ -9,9 +9,9 @@ class ServerSignaturePayload
     public string $algorithm;
     public string $verificationData;
     public string $signature;
-    public string $verified;
+    public bool $verified;
 
-    public function __construct(string $algorithm, string $verificationData, string $signature, string $verified)
+    public function __construct(string $algorithm, string $verificationData, string $signature, bool $verified)
     {
         $this->algorithm = $algorithm;
         $this->verificationData = $verificationData;
