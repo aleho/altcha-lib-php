@@ -1,54 +1,34 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
 use AltchaOrg\Altcha\Algorithm;
-use AltchaOrg\Altcha\ChallengeOptions;
 use AltchaOrg\Altcha\Altcha;
+use AltchaOrg\Altcha\BaseChallengeOptions;
 use AltchaOrg\Altcha\Challenge;
+use AltchaOrg\Altcha\ChallengeOptions;
 use AltchaOrg\Altcha\Solution;
+use PHPUnit\Framework\TestCase;
 
 class AltchaTest extends TestCase
 {
-    public function testCreateChallenge()
+    private static Challenge $challenge;
+
+    public static function setUpBeforeClass(): void
     {
-        $options = new ChallengeOptions([
-            'algorithm' => Algorithm::SHA256,
-            'hmacKey' => 'test-key'
-        ]);
-
-        $challenge = Altcha::createChallenge($options);
-
-        $this->assertInstanceOf(Challenge::class, $challenge);
-        $this->assertEquals(Algorithm::SHA256, $challenge->algorithm);
-        $this->assertNotEmpty($challenge->challenge);
-        $this->assertEquals(1e6, $challenge->maxnumber);
-        $this->assertNotEmpty($challenge->salt);
-        $this->assertNotEmpty($challenge->signature);
+        // build a default challenge for all tests (for performance reasons)
+        $options = new ChallengeOptions('test-key');
+        self::$challenge = Altcha::createChallenge($options);
     }
 
-    public function testVerifySolution()
+    public function testCreateChallenge(): void
     {
-        $options = new ChallengeOptions([
-            'algorithm' => Algorithm::SHA256,
-            'number' => 10,
-            'hmacKey' => 'test-key'
-        ]);
-
-        $challenge = Altcha::createChallenge($options);
-        $payload = [
-            'algorithm' => $challenge->algorithm,
-            'challenge' => $challenge->challenge,
-            'number' => 10,
-            'salt' => $challenge->salt,
-            'signature' => $challenge->signature,
-        ];
-
-        $isValid = Altcha::verifySolution($payload, 'test-key');
-
-        $this->assertTrue($isValid);
+        self::assertEquals(Algorithm::SHA256, self::$challenge->algorithm);
+        self::assertNotEmpty(self::$challenge->challenge);
+        self::assertEquals(BaseChallengeOptions::DEFAULT_MAX_NUMBER, self::$challenge->maxnumber);
+        self::assertNotEmpty(self::$challenge->salt);
+        self::assertNotEmpty(self::$challenge->signature);
     }
 
-    public function testVerifyFieldsHash()
+    public function testVerifyFieldsHash(): void
     {
         $formData = [
             'field1' => 'value1',
@@ -60,32 +40,53 @@ class AltchaTest extends TestCase
 
         $isValid = Altcha::verifyFieldsHash($formData, $fields, $fieldsHash, Algorithm::SHA256);
 
-        $this->assertTrue($isValid);
+        self::assertTrue($isValid);
     }
 
-    public function testSolveChallenge()
+    public function testSolveChallenge(): void
     {
-        $options = new ChallengeOptions([
-            'algorithm' => Algorithm::SHA256,
-            'hmacKey' => 'test-key',
-            'maxNumber' => 100
-        ]);
+        $solution = Altcha::solveChallenge(
+            self::$challenge->challenge,
+            self::$challenge->salt,
+            self::$challenge->algorithm,
+            self::$challenge->maxnumber
+        );
 
-        $challenge = Altcha::createChallenge($options);
-
-        $solution = Altcha::solveChallenge($challenge->challenge, $challenge->salt, $challenge->algorithm, $challenge->maxnumber);
-
-        $this->assertInstanceOf(Solution::class, $solution);
-        $this->assertEquals($solution->number, $solution->number);
-        $this->assertGreaterThan(0, $solution->took);
+        self::assertInstanceOf(Solution::class, $solution);
+        self::assertEquals($solution->number, $solution->number);
+        self::assertGreaterThan(0, $solution->took);
     }
 
-    public function testInvalidPayload()
+    public function testVerifySolution(): void
+    {
+        $solution = Altcha::solveChallenge(
+            self::$challenge->challenge,
+            self::$challenge->salt,
+            self::$challenge->algorithm,
+            self::$challenge->maxnumber
+        );
+
+        self::assertInstanceOf(Solution::class, $solution);
+
+        $payload = [
+            'algorithm' => self::$challenge->algorithm,
+            'challenge' => self::$challenge->challenge,
+            'salt' => self::$challenge->salt,
+            'signature' => self::$challenge->signature,
+            'number' => $solution->number,
+        ];
+
+        $isValid = Altcha::verifySolution($payload, 'test-key');
+
+        self::assertTrue($isValid);
+    }
+
+    public function testInvalidPayload(): void
     {
         $isValid = Altcha::verifySolution('I am invalid', 'key');
-        $this->assertFalse($isValid);
+        self::assertFalse($isValid);
 
-        $isValid = Altcha::verifyServerSignature('I am invalid', 'key');
-        $this->assertFalse($isValid);
+        $verification = Altcha::verifyServerSignature('I am invalid', 'key');
+        self::assertFalse($verification->verified);
     }
 }

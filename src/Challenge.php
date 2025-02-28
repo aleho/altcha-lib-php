@@ -8,11 +8,11 @@ class Challenge
 {
     public string $algorithm;
     public string $challenge;
-    public float $maxnumber;
+    public int $maxnumber;
     public string $salt;
     public string $signature;
 
-    public function __construct(string $algorithm, string $challenge, float $maxNumber, string $salt, string $signature)
+    public function __construct(string $algorithm, string $challenge, int $maxNumber, string $salt, string $signature)
     {
         $this->algorithm = $algorithm;
         $this->challenge = $challenge;
