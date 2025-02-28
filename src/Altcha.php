@@ -224,30 +224,18 @@ class Altcha
 
         parse_str($payload->verificationData, $params);
 
-        $classification = isset($params['classification']) && is_string($params['classification']) ? $params['classification'] : '';
-        $country = isset($params['country']) && is_string($params['country']) ? $params['country'] : '';
-        $detectedLanguage = isset($params['detectedLanguage']) && is_string($params['detectedLanguage']) ? $params['detectedLanguage'] : '';
-        $email = isset($params['email']) && is_string($params['email']) ? $params['email'] : '';
-        $expire = isset($params['expire']) && is_numeric($params['expire']) ? (int) $params['expire'] : 0;
-        $fields = isset($params['fields']) && is_array($params['fields']) ? $params['fields'] : [];
-        $fieldsHash = isset($params['fieldsHash']) && is_string($params['fieldsHash']) ? $params['fieldsHash'] : '';
-        $reasons = isset($params['reasons']) && is_array($params['reasons']) ? $params['reasons'] : [];
-        $score = isset($params['score']) && is_numeric($params['score']) ? (float) $params['score'] : 0.0;
-        $time = isset($params['time']) && is_numeric($params['time']) ? (int) $params['time'] : 0;
-        $verified = isset($params['verified']) && $params['verified'];
-
         $verificationData = new ServerSignatureVerificationData(
-            $classification,
-            $country,
-            $detectedLanguage,
-            $email,
-            $expire,
-            $fields,
-            $fieldsHash,
-            $reasons,
-            $score,
-            $time,
-            $verified,
+            classification: isset($params['classification']) && is_string($params['classification']) ? $params['classification'] : '',
+            country: isset($params['country']) && is_string($params['country']) ? $params['country'] : '',
+            detectedLanguage: isset($params['detectedLanguage']) && is_string($params['detectedLanguage']) ? $params['detectedLanguage'] : '',
+            email: isset($params['email']) && is_string($params['email']) ? $params['email'] : '',
+            expire: isset($params['expire']) && is_numeric($params['expire']) ? (int) $params['expire'] : 0,
+            fields: isset($params['fields']) && is_array($params['fields']) ? $params['fields'] : [],
+            fieldsHash: isset($params['fieldsHash']) && is_string($params['fieldsHash']) ? $params['fieldsHash'] : '',
+            reasons: isset($params['reasons']) && is_array($params['reasons']) ? $params['reasons'] : [],
+            score: isset($params['score']) && is_numeric($params['score']) ? (float) $params['score'] : 0.0,
+            time: isset($params['time']) && is_numeric($params['time']) ? (int) $params['time'] : 0,
+            verified: isset($params['verified']) && $params['verified'],
         );
 
         $now = time();

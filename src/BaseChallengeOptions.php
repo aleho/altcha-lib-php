@@ -13,15 +13,7 @@ class BaseChallengeOptions
 {
     public const DEFAULT_MAX_NUMBER = 1000000;
 
-    public Algorithm $algorithm;
-    public int $maxNumber;
-    public string $hmacKey;
-    public string $salt;
-    public int $number;
-    public ?\DateTimeInterface $expires;
-
-    /** @var array<array-key, null|scalar> */
-    public array $params;
+    public readonly string $salt;
 
     /**
      * Options for creation of a new challenge.
@@ -30,28 +22,22 @@ class BaseChallengeOptions
      * @param ChallengeParams $params
      */
     public function __construct(
-        Algorithm $algorithm,
-        string $hmacKey,
-        int $maxNumber,
-        ?\DateTimeInterface $expires,
+        public readonly Algorithm $algorithm,
+        public readonly string $hmacKey,
+        public readonly int $maxNumber,
+        public readonly ?\DateTimeInterface $expires,
         string $salt,
-        int $number,
-        array $params
+        public readonly int $number,
+        public readonly array $params,
     ) {
-        $this->algorithm = $algorithm;
-        $this->hmacKey = $hmacKey;
-        $this->maxNumber = $maxNumber;
-        $this->expires = $expires;
-        $this->salt = $salt;
-        $this->number = $number;
-        $this->params = $params;
-
         if ($expires) {
             $params['expires'] = $expires->getTimestamp();
         }
 
         if (!empty($params)) {
-            $this->salt .= '?' . http_build_query($params);
+            $salt .= '?' . http_build_query($params);
         }
+
+        $this->salt = $salt;
     }
 }

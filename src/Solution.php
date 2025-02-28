@@ -6,12 +6,9 @@ namespace AltchaOrg\Altcha;
 
 class Solution
 {
-    public int $number;
-    public float $took;
-
-    public function __construct(int $number, float $took)
-    {
-        $this->number = $number;
-        $this->took = $took;
+    public function __construct(
+        public readonly int $number,
+        public readonly float $took,
+    ) {
     }
 }

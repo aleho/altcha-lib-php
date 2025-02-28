@@ -30,7 +30,7 @@ class ChallengeOptions extends BaseChallengeOptions
         int $maxNumber = self::DEFAULT_MAX_NUMBER,
         ?\DateTimeInterface $expires = null,
         array $params = [],
-        int $saltLength = self::DEFAULT_SALT_LENGTH
+        int $saltLength = self::DEFAULT_SALT_LENGTH,
     ) {
         parent::__construct(
             $algorithm,

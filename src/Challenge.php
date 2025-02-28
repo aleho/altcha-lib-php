@@ -6,18 +6,12 @@ namespace AltchaOrg\Altcha;
 
 class Challenge
 {
-    public string $algorithm;
-    public string $challenge;
-    public int $maxnumber;
-    public string $salt;
-    public string $signature;
-
-    public function __construct(string $algorithm, string $challenge, int $maxNumber, string $salt, string $signature)
-    {
-        $this->algorithm = $algorithm;
-        $this->challenge = $challenge;
-        $this->maxnumber = $maxNumber;
-        $this->salt = $salt;
-        $this->signature = $signature;
+    public function __construct(
+        public readonly string $algorithm,
+        public readonly string $challenge,
+        public readonly int $maxnumber,
+        public readonly string $salt,
+        public readonly string $signature,
+    ) {
     }
 }

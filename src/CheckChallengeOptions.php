@@ -12,7 +12,7 @@ class CheckChallengeOptions extends BaseChallengeOptions
         string $hmacKey,
         Algorithm $algorithm,
         string $salt,
-        int $number
+        int $number,
     ) {
         parent::__construct($algorithm, $hmacKey, self::DEFAULT_MAX_NUMBER, null, $salt, $number, []);
     }
