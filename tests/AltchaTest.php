@@ -21,7 +21,7 @@ class AltchaTest extends TestCase
 
     public function testCreateChallenge(): void
     {
-        self::assertEquals(Algorithm::SHA256, self::$challenge->algorithm);
+        self::assertEquals(Algorithm::SHA256->value, self::$challenge->algorithm);
         self::assertNotEmpty(self::$challenge->challenge);
         self::assertEquals(BaseChallengeOptions::DEFAULT_MAX_NUMBER, self::$challenge->maxnumber);
         self::assertNotEmpty(self::$challenge->salt);
@@ -48,7 +48,7 @@ class AltchaTest extends TestCase
         $solution = Altcha::solveChallenge(
             self::$challenge->challenge,
             self::$challenge->salt,
-            self::$challenge->algorithm,
+            Algorithm::from(self::$challenge->algorithm),
             self::$challenge->maxnumber
         );
 
@@ -62,7 +62,7 @@ class AltchaTest extends TestCase
         $solution = Altcha::solveChallenge(
             self::$challenge->challenge,
             self::$challenge->salt,
-            self::$challenge->algorithm,
+            Algorithm::from(self::$challenge->algorithm),
             self::$challenge->maxnumber
         );
 

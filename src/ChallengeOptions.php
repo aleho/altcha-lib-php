@@ -9,8 +9,6 @@ namespace AltchaOrg\Altcha;
  */
 class ChallengeOptions extends BaseChallengeOptions
 {
-    public const DEFAULT_ALGORITHM = Algorithm::SHA256;
-
     private const DEFAULT_SALT_LENGTH = 12;
 
     /**
@@ -18,7 +16,7 @@ class ChallengeOptions extends BaseChallengeOptions
      *
      * @param string                  $hmacKey    Required HMAC key.
      * @param int                     $maxNumber  Maximum number for the random number generator (default: 1,000,000)
-     * @param string                  $algorithm  Hashing algorithm to use (`SHA-1`, `SHA-256`, `SHA-512`, default:
+     * @param Algorithm               $algorithm  Hashing algorithm to use (`SHA-1`, `SHA-256`, `SHA-512`, default:
      *                                            `SHA-256`).
      * @param \DateTimeInterface|null $expires    Optional expiration time for the challenge.
      * @param ChallengeParams         $params     Optional URL-encoded query parameters.
@@ -26,7 +24,7 @@ class ChallengeOptions extends BaseChallengeOptions
      */
     public function __construct(
         string $hmacKey,
-        string $algorithm = self::DEFAULT_ALGORITHM,
+        Algorithm $algorithm = Algorithm::SHA256,
         int $maxNumber = self::DEFAULT_MAX_NUMBER,
         ?\DateTimeInterface $expires = null,
         array $params = [],

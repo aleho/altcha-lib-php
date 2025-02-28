@@ -8,7 +8,7 @@ class CheckChallengeOptions extends BaseChallengeOptions
 {
     public function __construct(
         string $hmacKey,
-        string $algorithm,
+        Algorithm $algorithm,
         string $salt,
         int $number
     ) {

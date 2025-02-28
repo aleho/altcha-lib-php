@@ -19,40 +19,30 @@ use InvalidArgumentException;
  */
 class Altcha
 {
-    private static function hash(string $algorithm, string $data): string
+    private static function hash(Algorithm $algorithm, string $data): string
     {
-        switch ($algorithm) {
-            case Algorithm::SHA1:
-                return sha1($data, true);
-            case Algorithm::SHA256:
-                return hash('sha256', $data, true);
-            case Algorithm::SHA512:
-                return hash('sha512', $data, true);
-            default:
-                throw new InvalidArgumentException("Unsupported algorithm: $algorithm");
-        }
+        return match ($algorithm) {
+            Algorithm::SHA1   => sha1($data, true),
+            Algorithm::SHA256 => hash('sha256', $data, true),
+            Algorithm::SHA512 => hash('sha512', $data, true),
+        };
     }
 
-    public static function hashHex(string $algorithm, string $data): string
+    public static function hashHex(Algorithm $algorithm, string $data): string
     {
         return bin2hex(self::hash($algorithm, $data));
     }
 
-    private static function hmacHash(string $algorithm, string $data, string $key): string
+    private static function hmacHash(Algorithm $algorithm, string $data, string $key): string
     {
-        switch ($algorithm) {
-            case Algorithm::SHA1:
-                return hash_hmac('sha1', $data, $key, true);
-            case Algorithm::SHA256:
-                return hash_hmac('sha256', $data, $key, true);
-            case Algorithm::SHA512:
-                return hash_hmac('sha512', $data, $key, true);
-            default:
-                throw new InvalidArgumentException("Unsupported algorithm: $algorithm");
-        }
+        return match ($algorithm) {
+            Algorithm::SHA1   => hash_hmac('sha1', $data, $key, true),
+            Algorithm::SHA256 => hash_hmac('sha256', $data, $key, true),
+            Algorithm::SHA512 => hash_hmac('sha512', $data, $key, true),
+        };
     }
 
-    private static function hmacHex(string $algorithm, string $data, string $key): string
+    private static function hmacHex(Algorithm $algorithm, string $data, string $key): string
     {
         return bin2hex(self::hmacHash($algorithm, $data, $key));
     }
@@ -88,13 +78,13 @@ class Altcha
         $challenge = self::hashHex($options->algorithm, $options->salt . $options->number);
         $signature = self::hmacHex($options->algorithm, $challenge, $options->hmacKey);
 
-        return new Challenge($options->algorithm, $challenge, $options->maxNumber, $options->salt, $signature);
+        return new Challenge($options->algorithm->value, $challenge, $options->maxNumber, $options->salt, $signature);
     }
 
     /**
      * @param string|PayloadData $data
      */
-    public static function verifySolution($data, string $hmacKey, bool $checkExpires = true): bool
+    public static function verifySolution(string|array $data, string $hmacKey, bool $checkExpires = true): bool
     {
         if (is_string($data)) {
             /** @var PayloadData|null $data */
@@ -107,7 +97,13 @@ class Altcha
             return false;
         }
 
-        $payload = new Payload($data['algorithm'], $data['challenge'], $data['number'], $data['salt'], $data['signature']);
+        $algorithm = Algorithm::tryFrom($data['algorithm']);
+
+        if (!$algorithm) {
+            throw new InvalidArgumentException("Unsupported algorithm: {$data['algorithm']}");
+        }
+
+        $payload = new Payload($algorithm, $data['challenge'], $data['number'], $data['salt'], $data['signature']);
 
         $params = self::extractParams($payload);
         if ($checkExpires && isset($params['expires']) && is_numeric($params['expires'])) {
@@ -147,7 +143,7 @@ class Altcha
      * @param array<array-key, mixed> $formData
      * @param array<array-key, mixed> $fields
      */
-    public static function verifyFieldsHash(array $formData, array $fields, string $fieldsHash, string $algorithm): bool
+    public static function verifyFieldsHash(array $formData, array $fields, string $fieldsHash, Algorithm $algorithm): bool
     {
         $lines = [];
         foreach ($fields as $field) {
@@ -161,7 +157,7 @@ class Altcha
     /**
      * @param string|PayloadData $data
      */
-    public static function verifyServerSignature($data, string $hmacKey): ServerSignatureVerification
+    public static function verifyServerSignature(string|array $data, string $hmacKey): ServerSignatureVerification
     {
         if (is_string($data)) {
             /** @var PayloadData|null $data */
@@ -174,7 +170,19 @@ class Altcha
             return new ServerSignatureVerification(false, null);
         }
 
-        $payload = new ServerSignaturePayload($data['algorithm'], $data['verificationData'], $data['signature'], $data['verified']);
+        $algorithm = Algorithm::tryFrom($data['algorithm']);
+
+        if (!$algorithm) {
+            throw new InvalidArgumentException("Unsupported algorithm: {$data['algorithm']}");
+        }
+
+        $algorithm = Algorithm::tryFrom($data['algorithm']);
+
+        if (!$algorithm) {
+            throw new InvalidArgumentException("Unsupported algorithm: {$data['algorithm']}");
+        }
+
+        $payload = new ServerSignaturePayload($algorithm, $data['verificationData'], $data['signature'], $data['verified']);
 
         $hash = self::hash($payload->algorithm, $payload->verificationData);
         $expectedSignature = self::hmacHex($payload->algorithm, $hash, $hmacKey);
@@ -215,7 +223,7 @@ class Altcha
         return new ServerSignatureVerification($isVerified, $verificationData);
     }
 
-    public static function solveChallenge(string $challenge, string $salt, string $algorithm, int $max, int $start = 0): ?Solution
+    public static function solveChallenge(string $challenge, string $salt, Algorithm $algorithm, int $max, int $start = 0): ?Solution
     {
         $startTime = microtime(true);
 

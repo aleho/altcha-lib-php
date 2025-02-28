@@ -6,12 +6,12 @@ namespace AltchaOrg\Altcha;
 
 class ServerSignaturePayload
 {
-    public string $algorithm;
+    public Algorithm $algorithm;
     public string $verificationData;
     public string $signature;
     public bool $verified;
 
-    public function __construct(string $algorithm, string $verificationData, string $signature, bool $verified)
+    public function __construct(Algorithm $algorithm, string $verificationData, string $signature, bool $verified)
     {
         $this->algorithm = $algorithm;
         $this->verificationData = $verificationData;
