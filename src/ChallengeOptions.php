@@ -16,7 +16,6 @@ class ChallengeOptions extends BaseChallengeOptions
     /**
      * Options for creation of a new challenge with sane defaults.
      *
-     * @param string                  $hmacKey    Required HMAC key.
      * @param int                     $maxNumber  Maximum number for the random number generator (default: 1,000,000)
      * @param Algorithm               $algorithm  Hashing algorithm to use (`SHA-1`, `SHA-256`, `SHA-512`, default:
      *                                            `SHA-256`).
@@ -25,7 +24,6 @@ class ChallengeOptions extends BaseChallengeOptions
      * @param int<1, max>             $saltLength Length of the random salt (default: 12 bytes).
      */
     public function __construct(
-        string $hmacKey,
         Algorithm $algorithm = Algorithm::SHA256,
         int $maxNumber = self::DEFAULT_MAX_NUMBER,
         ?\DateTimeInterface $expires = null,
@@ -34,7 +32,6 @@ class ChallengeOptions extends BaseChallengeOptions
     ) {
         parent::__construct(
             $algorithm,
-            $hmacKey,
             $maxNumber,
             $expires,
             bin2hex(self::randomBytes($saltLength)),

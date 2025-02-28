@@ -23,7 +23,6 @@ class BaseChallengeOptions
      */
     public function __construct(
         public readonly Algorithm $algorithm,
-        public readonly string $hmacKey,
         public readonly int $maxNumber,
         public readonly ?\DateTimeInterface $expires,
         string $salt,
