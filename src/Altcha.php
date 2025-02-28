@@ -10,16 +10,12 @@ class Altcha
 {
     private static function hash(string $algorithm, string $data): string
     {
-        switch ($algorithm) {
-            case Algorithm::SHA1:
-                return sha1($data, true);
-            case Algorithm::SHA256:
-                return hash('sha256', $data, true);
-            case Algorithm::SHA512:
-                return hash('sha512', $data, true);
-            default:
-                throw new InvalidArgumentException("Unsupported algorithm: $algorithm");
-        }
+        return match ($algorithm) {
+            Algorithm::SHA1   => sha1($data, true),
+            Algorithm::SHA256 => hash('sha256', $data, true),
+            Algorithm::SHA512 => hash('sha512', $data, true),
+            default           => throw new InvalidArgumentException("Unsupported algorithm: $algorithm"),
+        };
     }
 
     public static function hashHex(string $algorithm, string $data): string
@@ -29,16 +25,12 @@ class Altcha
 
     private static function hmacHash(string $algorithm, string $data, string $key): string
     {
-        switch ($algorithm) {
-            case Algorithm::SHA1:
-                return hash_hmac('sha1', $data, $key, true);
-            case Algorithm::SHA256:
-                return hash_hmac('sha256', $data, $key, true);
-            case Algorithm::SHA512:
-                return hash_hmac('sha512', $data, $key, true);
-            default:
-                throw new InvalidArgumentException("Unsupported algorithm: $algorithm");
-        }
+        return match ($algorithm) {
+            Algorithm::SHA1   => hash_hmac('sha1', $data, $key, true),
+            Algorithm::SHA256 => hash_hmac('sha256', $data, $key, true),
+            Algorithm::SHA512 => hash_hmac('sha512', $data, $key, true),
+            default           => throw new InvalidArgumentException("Unsupported algorithm: $algorithm"),
+        };
     }
 
     private static function hmacHex(string $algorithm, string $data, string $key): string
@@ -61,7 +53,7 @@ class Altcha
 
         try {
             $data = json_decode($decoded, true, 2, JSON_THROW_ON_ERROR);
-        } catch (\JsonException|\ValueError $e) {
+        } catch (\JsonException|\ValueError) {
             return null;
         }
 
@@ -75,7 +67,7 @@ class Altcha
     /**
      * @param string|array<array-key, mixed> $data
      */
-    private static function verifyAndBuildSolutionPayload($data): ?Payload
+    private static function verifyAndBuildSolutionPayload(string|array $data): ?Payload
     {
         if (is_string($data)) {
             $data = self::decodePayload($data);
@@ -98,7 +90,7 @@ class Altcha
     /**
      * @param string|array<array-key, mixed> $data
      */
-    private static function verifyAndBuildServerSignaturePayload($data): ?ServerSignaturePayload
+    private static function verifyAndBuildServerSignaturePayload(string|array $data): ?ServerSignaturePayload
     {
         if (is_string($data)) {
             $data = self::decodePayload($data);
@@ -141,7 +133,7 @@ class Altcha
      *
      * @return bool True if the solution is valid.
      */
-    public static function verifySolution($data, string $hmacKey, bool $checkExpires = true): bool
+    public static function verifySolution(string|array $data, string $hmacKey, bool $checkExpires = true): bool
     {
         $payload = self::verifyAndBuildSolutionPayload($data);
 
@@ -209,7 +201,7 @@ class Altcha
      * @param string|array<array-key, mixed> $data    The payload to verify (string or `ServerSignaturePayload` array).
      * @param string                         $hmacKey The HMAC key used for verification.
      */
-    public static function verifyServerSignature($data, string $hmacKey): ServerSignatureVerification
+    public static function verifyServerSignature(string|array $data, string $hmacKey): ServerSignatureVerification
     {
         $payload = self::verifyAndBuildServerSignaturePayload($data);
 
