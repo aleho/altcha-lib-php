@@ -19,7 +19,15 @@ use InvalidArgumentException;
  */
 class Altcha
 {
-    private static function hash(Algorithm $algorithm, string $data): string
+    /**
+     * @param string $hmacKey Required HMAC key for challenge calculation and solution verification.
+     */
+    public function __construct(
+        private readonly string $hmacKey,
+    ) {
+    }
+
+    private function hash(Algorithm $algorithm, string $data): string
     {
         return match ($algorithm) {
             Algorithm::SHA1   => sha1($data, true),
@@ -28,12 +36,12 @@ class Altcha
         };
     }
 
-    public static function hashHex(Algorithm $algorithm, string $data): string
+    private function hashHex(Algorithm $algorithm, string $data): string
     {
-        return bin2hex(self::hash($algorithm, $data));
+        return bin2hex($this->hash($algorithm, $data));
     }
 
-    private static function hmacHash(Algorithm $algorithm, string $data, string $key): string
+    private function hmacHash(Algorithm $algorithm, string $data, string $key): string
     {
         return match ($algorithm) {
             Algorithm::SHA1   => hash_hmac('sha1', $data, $key, true),
@@ -42,9 +50,9 @@ class Altcha
         };
     }
 
-    private static function hmacHex(Algorithm $algorithm, string $data, string $key): string
+    private function hmacHex(Algorithm $algorithm, string $data, string $key): string
     {
-        return bin2hex(self::hmacHash($algorithm, $data, $key));
+        return bin2hex($this->hmacHash($algorithm, $data, $key));
     }
 
     /**
@@ -52,7 +60,7 @@ class Altcha
      *
      * @return null|array<array-key, mixed>
      */
-    private static function decodePayload(string $payload): ?array
+    private function decodePayload(string $payload): ?array
     {
         $decoded = base64_decode($payload);
 
@@ -73,10 +81,10 @@ class Altcha
         return $data;
     }
 
-    public static function createChallenge(BaseChallengeOptions $options): Challenge
+    public function createChallenge(BaseChallengeOptions $options = new ChallengeOptions()): Challenge
     {
-        $challenge = self::hashHex($options->algorithm, $options->salt . $options->number);
-        $signature = self::hmacHex($options->algorithm, $challenge, $options->hmacKey);
+        $challenge = $this->hashHex($options->algorithm, $options->salt . $options->number);
+        $signature = $this->hmacHex($options->algorithm, $challenge, $this->hmacKey);
 
         return new Challenge($options->algorithm->value, $challenge, $options->maxNumber, $options->salt, $signature);
     }
@@ -84,11 +92,11 @@ class Altcha
     /**
      * @param string|PayloadData $data
      */
-    public static function verifySolution(string|array $data, string $hmacKey, bool $checkExpires = true): bool
+    public function verifySolution(string|array $data, bool $checkExpires = true): bool
     {
         if (is_string($data)) {
             /** @var PayloadData|null $data */
-            $data = self::decodePayload($data);
+            $data = $this->decodePayload($data);
         }
 
         if ($data === null
@@ -105,7 +113,7 @@ class Altcha
 
         $payload = new Payload($algorithm, $data['challenge'], $data['number'], $data['salt'], $data['signature']);
 
-        $params = self::extractParams($payload);
+        $params = $this->extractParams($payload);
         if ($checkExpires && isset($params['expires']) && is_numeric($params['expires'])) {
             $expireTime = (int)$params['expires'];
             if (time() > $expireTime) {
@@ -114,13 +122,12 @@ class Altcha
         }
 
         $challengeOptions = new CheckChallengeOptions(
-            $hmacKey,
             $payload->algorithm,
             $payload->salt,
             $payload->number
         );
 
-        $expectedChallenge = self::createChallenge($challengeOptions);
+        $expectedChallenge = $this->createChallenge($challengeOptions);
 
         return $expectedChallenge->challenge === $payload->challenge &&
             $expectedChallenge->signature === $payload->signature;
@@ -129,7 +136,7 @@ class Altcha
     /**
      * @return array<array-key, array<array-key, mixed>|string>
      */
-    private static function extractParams(Payload $payload): array
+    private function extractParams(Payload $payload): array
     {
         $saltParts = explode('?', $payload->salt);
         if (count($saltParts) > 1) {
@@ -143,25 +150,25 @@ class Altcha
      * @param array<array-key, mixed> $formData
      * @param array<array-key, mixed> $fields
      */
-    public static function verifyFieldsHash(array $formData, array $fields, string $fieldsHash, Algorithm $algorithm): bool
+    public function verifyFieldsHash(array $formData, array $fields, string $fieldsHash, Algorithm $algorithm): bool
     {
         $lines = [];
         foreach ($fields as $field) {
             $lines[] = $formData[$field] ?? '';
         }
         $joinedData = implode("\n", $lines);
-        $computedHash = self::hashHex($algorithm, $joinedData);
+        $computedHash = $this->hashHex($algorithm, $joinedData);
         return $computedHash === $fieldsHash;
     }
 
     /**
      * @param string|PayloadData $data
      */
-    public static function verifyServerSignature(string|array $data, string $hmacKey): ServerSignatureVerification
+    public function verifyServerSignature(string|array $data): ServerSignatureVerification
     {
         if (is_string($data)) {
             /** @var PayloadData|null $data */
-            $data = self::decodePayload($data);
+            $data = $this->decodePayload($data);
         }
 
         if ($data === null
@@ -184,8 +191,8 @@ class Altcha
 
         $payload = new ServerSignaturePayload($algorithm, $data['verificationData'], $data['signature'], $data['verified']);
 
-        $hash = self::hash($payload->algorithm, $payload->verificationData);
-        $expectedSignature = self::hmacHex($payload->algorithm, $hash, $hmacKey);
+        $hash = $this->hash($payload->algorithm, $payload->verificationData);
+        $expectedSignature = $this->hmacHex($payload->algorithm, $hash, $this->hmacKey);
 
         parse_str($payload->verificationData, $params);
 
@@ -223,12 +230,12 @@ class Altcha
         return new ServerSignatureVerification($isVerified, $verificationData);
     }
 
-    public static function solveChallenge(string $challenge, string $salt, Algorithm $algorithm, int $max, int $start = 0): ?Solution
+    public function solveChallenge(string $challenge, string $salt, Algorithm $algorithm, int $max, int $start = 0): ?Solution
     {
         $startTime = microtime(true);
 
         for ($n = $start; $n <= $max; $n++) {
-            $hash = self::hashHex($algorithm, $salt . $n);
+            $hash = $this->hashHex($algorithm, $salt . $n);
             if ($hash === $challenge) {
                 $took = microtime(true) - $startTime;
                 return new Solution($n, $took);
