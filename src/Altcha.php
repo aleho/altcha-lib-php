@@ -6,9 +6,9 @@ use InvalidArgumentException;
 
 class Altcha
 {
-    const DEFAULT_MAX_NUMBER = 1e6;
-    const DEFAULT_SALT_LENGTH = 12;
-    const DEFAULT_ALGORITHM = Algorithm::SHA256;
+    public const DEFAULT_MAX_NUMBER  = 1e6;
+    public const DEFAULT_SALT_LENGTH = 12;
+    public const DEFAULT_ALGORITHM = Algorithm::SHA256;
 
     private static function randomBytes($length)
     {
