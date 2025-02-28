@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AltchaOrg\Altcha;
 
 class Solution
 {
-    public $number;
-    public $took;
+    public int $number;
+    public float $took;
 
-    public function __construct($number, $took)
+    public function __construct(int $number, float $took)
     {
         $this->number = $number;
         $this->took = $took;

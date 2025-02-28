@@ -1,17 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AltchaOrg\Altcha;
 
 class ChallengeOptions
 {
-    public $algorithm;
-    public $maxNumber;
-    public $saltLength;
-    public $hmacKey;
-    public $salt;
-    public $number;
-    public $expires;
-    public $params;
+    public string $algorithm;
+    public float $maxNumber;
+    public int $saltLength;
+    public string $hmacKey;
+    public string $salt;
+    public int $number;
+    public ?int $expires;
+
+    /** @var array<array-key, null|scalar> */
+    public array $params;
 
     public function __construct($options = [])
     {

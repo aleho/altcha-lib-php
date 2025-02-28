@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AltchaOrg\Altcha;
 
 class Payload
 {
-    public $algorithm;
-    public $challenge;
-    public $number;
-    public $salt;
-    public $signature;
+    public string $algorithm;
+    public string $challenge;
+    public int $number;
+    public string $salt;
+    public string $signature;
 
-    public function __construct($algorithm, $challenge, $number, $salt, $signature)
+    public function __construct(string $algorithm, string $challenge, int $number, string $salt, string $signature)
     {
         $this->algorithm = $algorithm;
         $this->challenge = $challenge;
