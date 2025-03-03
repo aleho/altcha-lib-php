@@ -62,7 +62,7 @@ class Altcha
 
     private static function decodePayload($payload)
     {
-        $decoded = base64_decode($payload);
+        $decoded = base64_decode($payload, true);
 
         if (!$decoded) {
             return null;
